@@ -17,7 +17,7 @@ public class Usuario {
 
     private String correoElectronico;
 
-    private String contraseña;
+    private String contrasena;
 
     // Otros atributos si es necesario
 }
