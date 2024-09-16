@@ -23,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 // Importa las anotaciones necesarias para definir controladores REST y mapear rutas.
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 // Importa la clase Optional, que se utiliza para manejar valores que pueden o no estar presentes.
 
@@ -70,27 +72,41 @@ public class UsuarioControlador {
     }
 
     @PostMapping("/login")
-    // Define que este método manejará las solicitudes HTTP POST dirigidas a la ruta "/login" (combinado con la ruta base "/api/usuarios", resultando en "/api/usuarios/login").
+// Este método maneja las solicitudes HTTP POST dirigidas a la ruta "/login".
+// La ruta completa será "/api/usuarios/login", dado que la clase tendrá un prefijo "/api/usuarios".
 
-    public ResponseEntity<String> login(@RequestBody UsuarioLoginDTO loginDTO) {
-        // Método público que maneja el proceso de login de un usuario.
-        // @RequestBody indica que el cuerpo de la solicitud HTTP será deserializado en una instancia de UsuarioLoginDTO.
+    public ResponseEntity<Map<String, String>> login(@RequestBody UsuarioLoginDTO loginDTO) {
+        // El método recibe un objeto `UsuarioLoginDTO` que contiene los datos enviados en el cuerpo de la solicitud (correo y contraseña).
+        // Se utilizará un `ResponseEntity` con un `Map` para devolver la respuesta en formato JSON.
 
         Optional<Usuario> usuario = usuarioServicio.encontrarPorCorreoElectronico(loginDTO.getCorreoElectronico());
-        // Llama al servicio de usuarios para buscar un usuario en la base de datos por su correo electrónico.
-        // El resultado es un Optional que puede contener el usuario encontrado o estar vacío si no existe.
+        // Llama al servicio de usuarios para buscar en la base de datos un usuario por su correo electrónico.
+        // El resultado se envuelve en un `Optional`, lo que significa que el usuario puede existir o no.
 
         if (usuario.isPresent() && usuario.get().getContrasena().equals(loginDTO.getContrasena())) {
-            // Verifica si el usuario existe y si la contraseña proporcionada coincide con la almacenada.
-            // Nota: Es fundamental utilizar un mecanismo de autenticación seguro, como el cifrado de contraseñas y la validación adecuada.
+            // Verifica si el usuario existe (`isPresent()`) y si la contraseña proporcionada coincide con la contraseña almacenada en la base de datos.
+            // NOTA: Para un sistema en producción, es importante usar contraseñas cifradas y mecanismos de autenticación seguros (como BCrypt).
 
-            return ResponseEntity.ok("Login exitoso");
-            // Si las credenciales son correctas, devuelve una respuesta HTTP 200 (OK) con un mensaje de éxito.
+            Map<String, String> response = new HashMap<>();
+            // Se crea un `HashMap` para almacenar los datos que serán devueltos como respuesta en formato JSON.
+
+            response.put("mensaje", "Login exitoso");
+            // Se añade una clave "mensaje" al mapa con el valor "Login exitoso", que será parte de la respuesta JSON.
+
+            return ResponseEntity.ok(response);
+            // Devuelve un `ResponseEntity` con el mapa (convertido automáticamente a JSON) y un código de estado HTTP 200 (OK).
         }
 
-        return ResponseEntity.status(401).body("Credenciales inválidas");
-        // Si las credenciales no son válidas, devuelve una respuesta HTTP 401 (Unauthorized) con un mensaje de error.
+        Map<String, String> errorResponse = new HashMap<>();
+        // Si las credenciales no son correctas, se crea otro mapa para la respuesta de error.
+
+        errorResponse.put("mensaje", "Credenciales inválidas");
+        // Se añade un mensaje de error al mapa indicando que las credenciales son inválidas.
+
+        return ResponseEntity.status(401).body(errorResponse);
+        // Devuelve un `ResponseEntity` con el mapa de error y un código de estado HTTP 401 (Unauthorized).
     }
+
 
     @GetMapping("/{id}")
     // Define que este método manejará las solicitudes HTTP GET dirigidas a la ruta "/{id}", donde {id} es una variable de ruta que representa el ID del usuario.
