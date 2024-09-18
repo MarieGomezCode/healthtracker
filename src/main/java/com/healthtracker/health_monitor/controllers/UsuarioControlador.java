@@ -44,64 +44,53 @@ public class UsuarioControlador {
     // Define una variable para almacenar el servicio de usuarios, que contiene la lógica de negocio.
 
     @PostMapping("/registro")
-    // Define que este método manejará las solicitudes HTTP POST dirigidas a la ruta "/registro" (combinado con la ruta base "/api/usuarios", resultando en "/api/usuarios/registro").
+    public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO) {
+        Optional<Usuario> usuarioExistente = usuarioServicio.encontrarPorCorreoElectronico(usuarioDTO.getCorreoElectronico());
 
-
-    public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO)
-    {
-        // Método público que maneja el registro de un nuevo usuario.
-        // @RequestBody indica que el cuerpo de la solicitud HTTP será deserializado en una instancia de UsuarioRegistroDTO.
+        Map<String, String> response = new HashMap<>();
+        if (usuarioExistente.isPresent()) {
+            // Si el correo ya está registrado, devolver un mensaje de error
+            response.put("mensaje", "correo ya registrado");
+            return ResponseEntity.status(400).body(response);  // Devuelve código 400 (Bad Request)
+        }
 
         Usuario usuario = new Usuario();
-        // Crea una nueva instancia de la clase Usuario.
-
         usuario.setNombre(usuarioDTO.getNombre());
-        // Establece el nombre del usuario con el valor proporcionado en el DTO recibido.
-
         usuario.setCorreoElectronico(usuarioDTO.getCorreoElectronico());
-        // Establece el correo electrónico del usuario con el valor proporcionado en el DTO recibido.
-
         usuario.setContrasena(usuarioDTO.getContrasena());
-        // Establece la contraseña del usuario con el valor proporcionado en el DTO recibido.
-        // Nota: Es importante cifrar la contraseña antes de guardarla por motivos de seguridad.
 
         Usuario usuarioGuardado = usuarioServicio.guardarUsuario(usuario);
-        // Llama al servicio de usuarios para guardar el nuevo usuario en la base de datos.
-        // El método guardarUsuario devuelve la instancia del usuario guardado, incluyendo el ID autogenerado.
-        // Crear la respuesta en formato JSON
-        Map<String, String> response = new HashMap<>();
+
         response.put("mensaje", "Usuario registrado exitosamente");
         response.put("id", String.valueOf(usuarioGuardado.getId()));
-
-        // Devolver la respuesta en formato JSON
         return ResponseEntity.ok(response);
-        // Devuelve una respuesta HTTP 200 (OK) con un mensaje de éxito que incluye el ID del usuario recién registrado.
     }
+
 
     @PostMapping("/login")
 // Este método maneja las solicitudes HTTP POST dirigidas a la ruta "/login".
 // La ruta completa será "/api/usuarios/login", dado que la clase tendrá un prefijo "/api/usuarios".
 
     public ResponseEntity<Map<String, String>> login(@RequestBody UsuarioLoginDTO loginDTO) {
-        // El método recibe un objeto `UsuarioLoginDTO` que contiene los datos enviados en el cuerpo de la solicitud (correo y contraseña).
-        // Se utilizará un `ResponseEntity` con un `Map` para devolver la respuesta en formato JSON.
+        // El método recibe un objeto UsuarioLoginDTO que contiene los datos enviados en el cuerpo de la solicitud (correo y contraseña).
+        // Se utilizará un ResponseEntity con un Map para devolver la respuesta en formato JSON.
 
         Optional<Usuario> usuario = usuarioServicio.encontrarPorCorreoElectronico(loginDTO.getCorreoElectronico());
         // Llama al servicio de usuarios para buscar en la base de datos un usuario por su correo electrónico.
-        // El resultado se envuelve en un `Optional`, lo que significa que el usuario puede existir o no.
+        // El resultado se envuelve en un Optional, lo que significa que el usuario puede existir o no.
 
         if (usuario.isPresent() && usuario.get().getContrasena().equals(loginDTO.getContrasena())) {
-            // Verifica si el usuario existe (`isPresent()`) y si la contraseña proporcionada coincide con la contraseña almacenada en la base de datos.
+            // Verifica si el usuario existe (isPresent()) y si la contraseña proporcionada coincide con la contraseña almacenada en la base de datos.
             // NOTA: Para un sistema en producción, es importante usar contraseñas cifradas y mecanismos de autenticación seguros (como BCrypt).
 
             Map<String, String> response = new HashMap<>();
-            // Se crea un `HashMap` para almacenar los datos que serán devueltos como respuesta en formato JSON.
+            // Se crea un HashMap para almacenar los datos que serán devueltos como respuesta en formato JSON.
 
             response.put("mensaje", "Login exitoso");
             // Se añade una clave "mensaje" al mapa con el valor "Login exitoso", que será parte de la respuesta JSON.
 
             return ResponseEntity.ok(response);
-            // Devuelve un `ResponseEntity` con el mapa (convertido automáticamente a JSON) y un código de estado HTTP 200 (OK).
+            // Devuelve un ResponseEntity con el mapa (convertido automáticamente a JSON) y un código de estado HTTP 200 (OK).
         }
 
         Map<String, String> errorResponse = new HashMap<>();
@@ -111,7 +100,7 @@ public class UsuarioControlador {
         // Se añade un mensaje de error al mapa indicando que las credenciales son inválidas.
 
         return ResponseEntity.status(401).body(errorResponse);
-        // Devuelve un `ResponseEntity` con el mapa de error y un código de estado HTTP 401 (Unauthorized).
+        // Devuelve un ResponseEntity con el mapa de error y un código de estado HTTP 401 (Unauthorized).
     }
 
 
