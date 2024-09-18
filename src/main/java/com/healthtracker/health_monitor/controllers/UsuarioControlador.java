@@ -46,7 +46,9 @@ public class UsuarioControlador {
     @PostMapping("/registro")
     // Define que este método manejará las solicitudes HTTP POST dirigidas a la ruta "/registro" (combinado con la ruta base "/api/usuarios", resultando en "/api/usuarios/registro").
 
-    public ResponseEntity<String> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO) {
+
+    public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO)
+    {
         // Método público que maneja el registro de un nuevo usuario.
         // @RequestBody indica que el cuerpo de la solicitud HTTP será deserializado en una instancia de UsuarioRegistroDTO.
 
@@ -66,8 +68,13 @@ public class UsuarioControlador {
         Usuario usuarioGuardado = usuarioServicio.guardarUsuario(usuario);
         // Llama al servicio de usuarios para guardar el nuevo usuario en la base de datos.
         // El método guardarUsuario devuelve la instancia del usuario guardado, incluyendo el ID autogenerado.
+        // Crear la respuesta en formato JSON
+        Map<String, String> response = new HashMap<>();
+        response.put("mensaje", "Usuario registrado exitosamente");
+        response.put("id", String.valueOf(usuarioGuardado.getId()));
 
-        return ResponseEntity.ok("Usuario registrado exitosamente con ID: " + usuarioGuardado.getId());
+        // Devolver la respuesta en formato JSON
+        return ResponseEntity.ok(response);
         // Devuelve una respuesta HTTP 200 (OK) con un mensaje de éxito que incluye el ID del usuario recién registrado.
     }
 
