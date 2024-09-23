@@ -68,40 +68,27 @@ public class UsuarioControlador {
 
 
     @PostMapping("/login")
-// Este método maneja las solicitudes HTTP POST dirigidas a la ruta "/login".
-// La ruta completa será "/api/usuarios/login", dado que la clase tendrá un prefijo "/api/usuarios".
-
     public ResponseEntity<Map<String, String>> login(@RequestBody UsuarioLoginDTO loginDTO) {
-        // El método recibe un objeto UsuarioLoginDTO que contiene los datos enviados en el cuerpo de la solicitud (correo y contraseña).
-        // Se utilizará un ResponseEntity con un Map para devolver la respuesta en formato JSON.
-
         Optional<Usuario> usuario = usuarioServicio.encontrarPorCorreoElectronico(loginDTO.getCorreoElectronico());
-        // Llama al servicio de usuarios para buscar en la base de datos un usuario por su correo electrónico.
-        // El resultado se envuelve en un Optional, lo que significa que el usuario puede existir o no.
+        Map<String, String> response = new HashMap<>();
 
-        if (usuario.isPresent() && usuario.get().getContrasena().equals(loginDTO.getContrasena())) {
-            // Verifica si el usuario existe (isPresent()) y si la contraseña proporcionada coincide con la contraseña almacenada en la base de datos.
-            // NOTA: Para un sistema en producción, es importante usar contraseñas cifradas y mecanismos de autenticación seguros (como BCrypt).
-
-            Map<String, String> response = new HashMap<>();
-            // Se crea un HashMap para almacenar los datos que serán devueltos como respuesta en formato JSON.
-
-            response.put("mensaje", "Login exitoso");
-            // Se añade una clave "mensaje" al mapa con el valor "Login exitoso", que será parte de la respuesta JSON.
-
-            return ResponseEntity.ok(response);
-            // Devuelve un ResponseEntity con el mapa (convertido automáticamente a JSON) y un código de estado HTTP 200 (OK).
+        if (usuario.isEmpty()) {
+            // Si el correo no está registrado
+            response.put("mensaje", "Correo no registrado");
+            return ResponseEntity.status(404).body(response);
         }
 
-        Map<String, String> errorResponse = new HashMap<>();
-        // Si las credenciales no son correctas, se crea otro mapa para la respuesta de error.
+        if (!usuario.get().getContrasena().equals(loginDTO.getContrasena())) {
+            // Si la contraseña es incorrecta
+            response.put("mensaje", "Credenciales inválidas");
+            return ResponseEntity.status(401).body(response);
+        }
 
-        errorResponse.put("mensaje", "Credenciales inválidas");
-        // Se añade un mensaje de error al mapa indicando que las credenciales son inválidas.
-
-        return ResponseEntity.status(401).body(errorResponse);
-        // Devuelve un ResponseEntity con el mapa de error y un código de estado HTTP 401 (Unauthorized).
+        // Si el correo y la contraseña son correctos
+        response.put("mensaje", "Login exitoso");
+        return ResponseEntity.ok(response);
     }
+
 
 
     @GetMapping("/{id}")
