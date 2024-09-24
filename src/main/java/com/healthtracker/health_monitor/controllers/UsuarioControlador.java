@@ -1,59 +1,63 @@
 package com.healthtracker.health_monitor.controllers;
-// Declaración del paquete donde se encuentra el controlador de usuarios.
-// Esto organiza las clases relacionadas con el control de usuarios dentro de la aplicación.
-
 import com.healthtracker.health_monitor.dto.UsuarioLoginDTO;
-// Importa la clase UsuarioLoginDTO, que es un Data Transfer Object para manejar las solicitudes de login.
-
 import com.healthtracker.health_monitor.dto.UsuarioRegistroDTO;
-// Importa la clase UsuarioRegistroDTO, que es un Data Transfer Object para manejar las solicitudes de registro.
-
 import com.healthtracker.health_monitor.models.Usuario;
 // Importa la clase Usuario, que es el modelo que representa a un usuario en la base de datos.
 
 import com.healthtracker.health_monitor.services.UsuarioServicio;
 // Importa el servicio UsuarioServicio, que contiene la lógica de negocio relacionada con los usuarios.
-
 import org.springframework.beans.factory.annotation.Autowired;
-// Importa la anotación @Autowired, utilizada para inyectar dependencias automáticamente.
-
 import org.springframework.http.ResponseEntity;
-// Importa la clase ResponseEntity, que representa una respuesta HTTP completa (código de estado y cuerpo).
-
 import org.springframework.web.bind.annotation.*;
-// Importa las anotaciones necesarias para definir controladores REST y mapear rutas.
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-// Importa la clase Optional, que se utiliza para manejar valores que pueden o no estar presentes.
+
 
 @RestController
-// Indica que esta clase es un controlador REST, lo que permite manejar solicitudes HTTP y devolver respuestas en formato JSON.
-
 @RequestMapping("/api/usuarios")
-// Define la ruta base para todas las solicitudes que maneja este controlador. En este caso, todas las rutas comenzarán con "/api/usuarios".
-
 public class UsuarioControlador {
-// Declaración de la clase pública UsuarioControlador, que gestionará las solicitudes relacionadas con los usuarios.
 
     @Autowired
-    // Indica a Spring que inyecte automáticamente una instancia de UsuarioServicio en esta clase.
 
     private UsuarioServicio usuarioServicio;
-    // Define una variable para almacenar el servicio de usuarios, que contiene la lógica de negocio.
 
     @PostMapping("/registro")
     public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO) {
-        Optional<Usuario> usuarioExistente = usuarioServicio.encontrarPorCorreoElectronico(usuarioDTO.getCorreoElectronico());
-
         Map<String, String> response = new HashMap<>();
-        if (usuarioExistente.isPresent()) {
-            // Si el correo ya está registrado, devolver un mensaje de error
-            response.put("mensaje", "correo ya registrado");
-            return ResponseEntity.status(400).body(response);  // Devuelve código 400 (Bad Request)
+
+        // Verifica que los campos no estén vacíos
+        if (usuarioDTO.getNombre().isBlank() || usuarioDTO.getCorreoElectronico().isBlank() || usuarioDTO.getContrasena().isBlank()) {
+            response.put("mensaje", "Complete todos los campos");
+            return ResponseEntity.status(400).body(response);
         }
 
+        // Verifica que el correo no esté registrado
+        Optional<Usuario> usuarioExistente = usuarioServicio.encontrarPorCorreoElectronico(usuarioDTO.getCorreoElectronico());
+        if (usuarioExistente.isPresent()) {
+            response.put("mensaje", "correo ya registrado");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        // Valida formato de contraseña
+        String contrasenaRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[\\W_]).{8,}$";
+        if (!usuarioDTO.getContrasena().matches(contrasenaRegex)) {
+            response.put("mensaje", "La contraseña no cumple con los requisitos");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        // Valida que el nombre sea solo uno y sin espacios
+        if (!usuarioDTO.getNombre().matches("^[a-zA-Z]+$")) {
+            response.put("mensaje", "Ingrese solo un nombre sin espacios");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        // Elimina espacios en los datos
+        usuarioDTO.setNombre(usuarioDTO.getNombre().trim());
+        usuarioDTO.setCorreoElectronico(usuarioDTO.getCorreoElectronico().trim());
+        usuarioDTO.setContrasena(usuarioDTO.getContrasena().trim());
+
+        // Guarda el usuario
         Usuario usuario = new Usuario();
         usuario.setNombre(usuarioDTO.getNombre());
         usuario.setCorreoElectronico(usuarioDTO.getCorreoElectronico());
@@ -65,6 +69,7 @@ public class UsuarioControlador {
         response.put("id", String.valueOf(usuarioGuardado.getId()));
         return ResponseEntity.ok(response);
     }
+
 
 
     @PostMapping("/login")
