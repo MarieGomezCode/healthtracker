@@ -26,6 +26,11 @@ public class UsuarioControlador {
     public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO) {
         Map<String, String> response = new HashMap<>();
 
+        // Elimina espacios en los datos
+        usuarioDTO.setNombre(usuarioDTO.getNombre().trim());
+        usuarioDTO.setCorreoElectronico(usuarioDTO.getCorreoElectronico().trim());
+        usuarioDTO.setContrasena(usuarioDTO.getContrasena().trim());
+
         // Verifica que los campos no estén vacíos
         if (usuarioDTO.getNombre().isBlank() || usuarioDTO.getCorreoElectronico().isBlank() || usuarioDTO.getContrasena().isBlank()) {
             response.put("mensaje", "Complete todos los campos");
@@ -52,10 +57,7 @@ public class UsuarioControlador {
             return ResponseEntity.status(400).body(response);
         }
 
-        // Elimina espacios en los datos
-        usuarioDTO.setNombre(usuarioDTO.getNombre().trim());
-        usuarioDTO.setCorreoElectronico(usuarioDTO.getCorreoElectronico().trim());
-        usuarioDTO.setContrasena(usuarioDTO.getContrasena().trim());
+
 
         // Guarda el usuario
         Usuario usuario = new Usuario();
@@ -69,7 +71,7 @@ public class UsuarioControlador {
         response.put("id", String.valueOf(usuarioGuardado.getId()));
         return ResponseEntity.ok(response);
     }
-
+    //Esta prueba no paso entonces se cambio el orden de las operacion se movio el que quita los espacios antes de validar datos
 
 
     @PostMapping("/login")
