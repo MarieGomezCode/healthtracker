@@ -71,7 +71,7 @@ public class UsuarioControlador {
         response.put("id", String.valueOf(usuarioGuardado.getId()));
         return ResponseEntity.ok(response);
     }
-    //Esta prueba no paso entonces se cambio el orden de las operacion se movio el que quita los espacios antes de validar datos
+    //Aqui  no paso la prueba de validar que no hallan espacios en los datos  entonces se cambio el orden de las operacion se movio el que quitaEspacios a antes de validar datos
 
 
     @PostMapping("/login")
