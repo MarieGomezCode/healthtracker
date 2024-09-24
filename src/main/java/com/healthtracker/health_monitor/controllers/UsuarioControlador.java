@@ -74,8 +74,16 @@ public class UsuarioControlador {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody UsuarioLoginDTO loginDTO) {
-        Optional<Usuario> usuario = usuarioServicio.encontrarPorCorreoElectronico(loginDTO.getCorreoElectronico());
         Map<String, String> response = new HashMap<>();
+
+        // Verificar si los campos están vacíos
+        if (loginDTO.getCorreoElectronico().isBlank() || loginDTO.getContrasena().isBlank()) {
+            response.put("mensaje", "Por favor ingrese los datos");
+            return ResponseEntity.status(400).body(response);
+        }
+
+        // Buscar el usuario por correo electrónico
+        Optional<Usuario> usuario = usuarioServicio.encontrarPorCorreoElectronico(loginDTO.getCorreoElectronico());
 
         if (usuario.isEmpty()) {
             // Si el correo no está registrado
@@ -83,9 +91,10 @@ public class UsuarioControlador {
             return ResponseEntity.status(404).body(response);
         }
 
+        // Verificar la contraseña
         if (!usuario.get().getContrasena().equals(loginDTO.getContrasena())) {
             // Si la contraseña es incorrecta
-            response.put("mensaje", "Credenciales inválidas");
+            response.put("mensaje", "Contraseña incorrecta");
             return ResponseEntity.status(401).body(response);
         }
 
@@ -93,6 +102,7 @@ public class UsuarioControlador {
         response.put("mensaje", "Login exitoso");
         return ResponseEntity.ok(response);
     }
+
 
 
 
