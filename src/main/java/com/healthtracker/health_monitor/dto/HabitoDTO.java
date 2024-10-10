@@ -12,4 +12,5 @@ public class HabitoDTO {
     private String descripcion;
     private LocalDateTime creadoEn;
     private Long usuarioId;
+
 }

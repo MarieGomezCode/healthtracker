@@ -1,3 +1,4 @@
 
 OpenJDK java21
-actualizar el informe de cobertura de JaCoCo-> mvn clean test
+crea o actualizar el informe de cobertura de JaCoCo-> mvn clean test
+

@@ -1,17 +1,25 @@
 package com.healthtracker.health_monitor.controllers;
 import com.healthtracker.health_monitor.dto.UsuarioLoginDTO;
 import com.healthtracker.health_monitor.dto.UsuarioRegistroDTO;
+import com.healthtracker.health_monitor.models.Habito;
 import com.healthtracker.health_monitor.models.Usuario;
 // Importa la clase Usuario, que es el modelo que representa a un usuario en la base de datos.
 
+
+import com.healthtracker.health_monitor.security.JwtUtil;
+import com.healthtracker.health_monitor.services.HabitoServicio;
 import com.healthtracker.health_monitor.services.UsuarioServicio;
 // Importa el servicio UsuarioServicio, que contiene la lógica de negocio relacionada con los usuarios.
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+
 
 
 @RestController
@@ -21,6 +29,12 @@ public class UsuarioControlador {
     @Autowired
 
     private UsuarioServicio usuarioServicio;
+    // Inyecta el servicio UsuarioServicio en el controlador para poder utilizar sus métodos.
+    @Autowired
+    private JwtUtil jwtUtil;
+    @Autowired
+    private HabitoServicio habitoServicio;
+
 
     @PostMapping("/registro")
     public ResponseEntity<Map<String, String>> registrarUsuario(@RequestBody UsuarioRegistroDTO usuarioDTO) {
@@ -78,32 +92,33 @@ public class UsuarioControlador {
     public ResponseEntity<Map<String, String>> login(@RequestBody UsuarioLoginDTO loginDTO) {
         Map<String, String> response = new HashMap<>();
 
-        // Verificar si los campos están vacíos
         if (loginDTO.getCorreoElectronico().isBlank() || loginDTO.getContrasena().isBlank()) {
             response.put("mensaje", "Por favor ingrese los datos");
             return ResponseEntity.status(400).body(response);
         }
 
-        // Buscar el usuario por correo electrónico
         Optional<Usuario> usuario = usuarioServicio.encontrarPorCorreoElectronico(loginDTO.getCorreoElectronico());
 
         if (usuario.isEmpty()) {
-            // Si el correo no está registrado
             response.put("mensaje", "Correo no registrado");
             return ResponseEntity.status(404).body(response);
         }
 
-        // Verificar la contraseña
         if (!usuario.get().getContrasena().equals(loginDTO.getContrasena())) {
-            // Si la contraseña es incorrecta
             response.put("mensaje", "Contraseña incorrecta");
             return ResponseEntity.status(401).body(response);
         }
 
         // Si el correo y la contraseña son correctos
+        // Generar el token
+        Long userId = usuario.get().getId(); // Obtener el ID del usuario
+        String token = jwtUtil.generateToken(usuario.get().getCorreoElectronico(), userId); // Pasar el ID del usuario
         response.put("mensaje", "Login exitoso");
+        response.put("token", token);
         return ResponseEntity.ok(response);
     }
+
+
 
 
 
@@ -125,4 +140,7 @@ public class UsuarioControlador {
         // Si el usuario está presente, devuelve una respuesta HTTP 200 (OK) con el usuario en el cuerpo.
         // Si el usuario no existe, devuelve una respuesta HTTP 404 (Not Found) sin contenido en el cuerpo.
     }
+
+
+
 }

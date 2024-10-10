@@ -1,10 +1,7 @@
 package com.healthtracker.health_monitor.models;
 
-
-
 import jakarta.persistence.*;
 import lombok.Data;
-
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,14 +13,12 @@ public class Habito {
     private Long id;
 
     private String nombre;
-
     private String descripcion;
-
     private LocalDateTime creadoEn;
 
     @ManyToOne
     @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
+    private Usuario usuario; // Relación con Usuario
 
     // Otros atributos (frecuencia, duración, etc.)
 }
